@@ -2,7 +2,7 @@ function addTask(){
   const taskInput = document.getElementByld('taskInput');
   const taslTest = taskInput.value.trim();
   if (taskText === '') {
-      alert("Введите текст задачи!");
+      alert("Введите текст для задачи!");
       return;
 }
 const taskList=document.getElementById('taskList');
