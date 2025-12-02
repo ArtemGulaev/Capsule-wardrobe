@@ -1,26 +1,50 @@
-Проблемный вариант:
-ClothingItems (item_id, name, description, purchase_date, price, image_url, user_id, username, user_email, category_id, category_name, color_id, color_name, size_id, size_value, brand_id, brand_name, season_names, material_names, occasion_names)
-Проблемы этой структуры:
-Избыточность: username, email повторяются для каждого предмета одежды пользователя
+# Проектирование базы данных "Капсульный гардероб"
 
-Аномалия обновления: при изменении email пользователя нужно обновлять все его предметы одежды
+## Обзор архитектуры
 
-Аномалия удаления: удаление последнего предмета одежды может потерять информацию о пользователе
+### Принятые решения для MVP:
 
-Повторяющиеся группы: season_names, material_names, occasion_names содержат множественные значения
+1. **Минимальный набор сущностей (5 таблиц):**
+   - Выбрано 5 ключевых сущностей вместо 12 для ускорения разработки MVP
+   - Баланс между функциональностью и скоростью реализации
 
-Частичные зависимости: category_name зависит только от category_id, а не от всего первичного ключа
+2. **Упрощенная модель данных:**
+   - Отказ от сложных справочников (бренды, материалы, размеры)
+   - Использование ENUM и текстовых полей вместо связей
+   - Теги вместо жесткой категоризации по поводам
 
-Users (user_id PK, username, email, password_hash, created_at, last_login)
+3. **Оптимизация для быстрого старта:**
+   - SQLite для простоты развертывания
+   - Минимальные индексы на старте
+   - Возможность добавления функциональности поэтапно
 
-Categories (category_id PK, name, type, description)
-Colors (color_id PK, name, hex_code, color_family)
-Sizes (size_id PK, size_system, value, body_measurements)
-Brands (brand_id PK, name, country, website)
-Seasons (season_id PK, name, description)
-Materials (material_id PK, name, description, care_instructions)
-Occasions (occasion_id PK, name, formality_level)
+## Процесс нормализации базы данных
 
-ClothingItems (item_id PK, name, description, purchase_date, price, image_url, 
-              is_favorite, last_worn, wear_count, condition, storage_location, created_at,
-              user_id FK, category_id FK, color_id FK, size_id FK, brand_id FK)
+### Нормализация до 1NF
+
+**Решено:** Все атрибуты атомарны
+
+**Изменения:**
+- Категории вынесены в отдельную таблицу `Categories`
+- Теги вынесены в отдельную таблицу `Tags` для гибкой категоризации
+- Убраны множественные значения в полях (сезон, цвет как одиночные значения)
+
+### Нормализация до 2NF
+
+**Решено:** Устранены частичные зависимости
+
+**Изменения:**
+- Данные пользователей вынесены в отдельную таблицу `Users`
+- Данные категорий вынесены в отдельную таблицу `Categories`
+- В `ClothingItems` остались только ссылки (FK) на эти сущности
+
+### Нормализация до 3NF
+
+**Решено:** Устранены транзитивные зависимости
+
+**Результат:**
+- Каждая таблица содержит только атрибуты, зависящие от ее первичного ключа
+- `ClothingTag` содержит только ключи связи и метаданные
+- Нет избыточных данных в основных таблицах
+
+## [ER-диаграмма (упрощенная)](https://github.com/ArtemGulaev/Capsule-wardrobe/edit/main/docs/database/ERDiagram.drawio.png)
