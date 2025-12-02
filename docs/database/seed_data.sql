@@ -1,28 +1,6 @@
 -- =============================================
 -- ТЕСТОВЫЕ ДАННЫЕ ДЛЯ "КАПСУЛЬНОГО ГАРДЕРОБА"
 -- =============================================
-
--- Очистка существующих данных (для тестовой среды)
--- Внимание: В продакшене не использовать!
-DELETE FROM WearHistory;
-DELETE FROM OutfitItems;
-DELETE FROM Outfits;
-DELETE FROM ItemOccasions;
-DELETE FROM ItemMaterials;
-DELETE FROM ItemSeasons;
-DELETE FROM ClothingItems;
-DELETE FROM Occasions;
-DELETE FROM Materials;
-DELETE FROM Seasons;
-DELETE FROM Brands;
-DELETE FROM Sizes;
-DELETE FROM Colors;
-DELETE FROM Categories;
-DELETE FROM Users;
-
--- Сброс автоинкремента (только для SQLite)
-DELETE FROM sqlite_sequence;
-
 -- =============================================
 -- 1. ПОЛЬЗОВАТЕЛИ
 -- =============================================
@@ -150,7 +128,7 @@ INSERT INTO Occasions (name, formality_level, description, icon_name) VALUES
 -- 9. ПРЕДМЕТЫ ОДЕЖДЫ (для пользователя anna_style)
 -- =============================================
 
--- Базовые вещи Анны
+-- Базовые вещи 
 INSERT INTO ClothingItems (name, description, purchase_date, price, image_url, 
                           is_favorite, condition, storage_location, user_id, category_id, color_id, size_id, brand_id) VALUES
 ('Белая футболка', 'Базовый предмет гардероба', '2024-03-15', 1999.00, 'items/white_tshirt.jpg', 
