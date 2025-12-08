@@ -1,0 +1,67 @@
+@startuml Mark_Item_Worn_Sequence
+title Последовательность отметки вещи как надетой
+
+actor "👤 Пользователь" as User
+participant "📱 Интерфейс" as UI
+participant "🎮 Контроллер" as Controller
+participant "🛠️ Сервис гардероба" as WardrobeService
+participant "🗄️ База данных" as DB
+participant "📊 Сервис статистики" as StatsService
+
+User -> UI: Нажимает "Надел сегодня" на вещи
+activate User
+activate UI
+
+UI -> Controller: PATCH /api/wardrobe/items/{id}/worn\n{\n  "wear_date": "2024-12-15",\n  "occasion": "работа",\n  "weather": "ясно, +20°C"\n}
+activate Controller
+
+Controller -> WardrobeService: markItemAsWorn(item_id, wearData)
+activate WardrobeService
+
+WardrobeService -> DB: UPDATE ClothingItems\nSET last_worn = ?, wear_count = wear_count + 1\nWHERE item_id = ?
+activate DB
+DB -> WardrobeService: rows_affected
+deactivate DB
+
+WardrobeService -> DB: INSERT INTO WearHistory\n(item_id, wear_date, occasion, weather, user_id)
+activate DB
+DB -> WardrobeService: wear_history_id
+deactivate DB
+
+WardrobeService -> WardrobeService: checkWearFrequency(item_id)
+activate WardrobeService
+
+alt Вещь не носилась > 30 дней
+    WardrobeService -> UI: suggestToRemoveItem(item_id)
+    WardrobeService -> StatsService: trackInfrequentItem(item_id, user_id)
+    activate StatsService
+    StatsService -> StatsService: updateInfrequentItemsReport(user_id)
+    deactivate StatsService
+end
+
+WardrobeService -> StatsService: updateWearStatistics(user_id, item_id)
+activate StatsService
+StatsService -> DB: UPDATE UserStats\nSET total_wears = total_wears + 1,\nlast_wear_date = ?\nWHERE user_id = ?
+activate DB
+DB -> StatsService: stats_updated
+deactivate DB
+deactivate StatsService
+
+WardrobeService -> Controller: SuccessResponse({\n  message: "Вещь отмечена как надетой",\n  wear_count: new_count,\n  last_worn: date\n})
+deactivate WardrobeService
+
+Controller -> UI: 200 OK\n{\n  "success": true,\n  "wear_count": 5,\n  "last_worn": "2024-12-15"\n}
+deactivate Controller
+
+UI -> UI: Обновить счетчик носки (+1)
+UI -> UI: Обновить дату последней носки
+UI -> UI: Показать уведомление "✅ Отмечено!"
+
+alt Было предложение удалить вещь
+    UI -> User: Показать suggestion:\n"Эта вещь не носилась 45 дней.\nУдалить из гардероба?"
+end
+
+UI -> User: Вещь визуально выделена\n(иконка "недавно надета")
+deactivate UI
+deactivate User
+@enduml
