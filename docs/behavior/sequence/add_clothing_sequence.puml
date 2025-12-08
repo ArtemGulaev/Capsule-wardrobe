@@ -1,0 +1,64 @@
+@startuml Add_Clothing_Item_Sequence
+title Последовательность добавления предмета одежды
+
+actor "👤 Пользователь" as User
+participant "📱 Интерфейс" as UI
+participant "🎮 Контроллер" as Controller
+participant "🛠️ Сервис гардероба" as WardrobeService
+participant "🗄️ База данных" as DB
+
+User -> UI: Нажимает "Добавить вещь"
+activate User
+activate UI
+
+UI -> UI: Открывает форму добавления
+UI -> User: Показывает форму с полями:\n- Название\n- Категория\n- Цвет\n- Сезон\n- Фото
+deactivate UI
+
+User -> UI: Заполняет форму и загружает фото
+activate UI
+UI -> Controller: POST /api/wardrobe/items\n{\n  "name": "Белая футболка",\n  "category_id": 1,\n  "color": "белый",\n  "season": "лето",\n  "image": "base64_data",\n  "user_id": 123\n}
+activate Controller
+
+Controller -> WardrobeService: createClothingItem(itemData)
+activate WardrobeService
+
+WardrobeService -> WardrobeService: validateItemData(itemData)
+activate WardrobeService
+
+alt Данные валидны
+  WardrobeService -> WardrobeService: processImage(itemData.image)
+  WardrobeService -> WardrobeService: generateThumbnail(image)
+  
+  WardrobeService -> DB: INSERT INTO ClothingItems\n(name, category_id, color, season,\nimage_url, user_id, created_at)
+  activate DB
+  DB -> DB: Сохраняет изображение в storage
+  DB -> WardrobeService: item_id = 456
+  deactivate DB
+  
+  WardrobeService -> WardrobeService: updateUserStats(user_id)
+  WardrobeService -> Controller: SuccessResponse({\n  item_id: 456,\n  message: "Предмет добавлен"\n})
+  deactivate WardrobeService
+  
+  Controller -> UI: 201 Created\n{\n  "success": true,\n  "item_id": 456,\n  "message": "Вещь успешно добавлена"\n}
+  deactivate Controller
+  
+  UI -> UI: Показать уведомление "✅ Вещь добавлена"
+  UI -> UI: Обновить список гардероба
+  UI -> UI: Сбросить форму добавления
+  
+  UI -> User: Показать новую вещь в списке\nс миниатюрой фото
+else Данные невалидны
+  WardrobeService -> Controller: ErrorResponse({\n  code: "VALIDATION_ERROR",\n  details: ["Название обязательно", "Выберите категорию"]\n})
+  deactivate WardrobeService
+  
+  Controller -> UI: 400 Bad Request\n{\n  "success": false,\n  "errors": ["Название обязательно", "Выберите категорию"]\n}
+  deactivate Controller
+  
+  UI -> UI: Подсветить невалидные поля
+  UI -> User: Показать ошибки валидации\nс пояснениями
+end
+
+deactivate UI
+deactivate User
+@enduml

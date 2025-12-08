@@ -1,0 +1,73 @@
+@startuml
+left to right direction
+
+actor "👤 Пользователь" as User
+rectangle "Капсульный гардероб 👕👗" {
+    usecase "➕ Добавление предмета одежды" as AddItem
+    usecase "✏️ Редактирование предмета" as EditItem
+    usecase "🗑️ Удаление предмета" as DeleteItem
+    usecase "👁️ Просмотр гардероба" as ViewWardrobe
+    usecase "📅 Отметить как надетое" as MarkWorn
+    usecase "⭐ Добавление в избранное" as AddToFavorites
+    usecase "📂 Фильтрация по категориям" as FilterByCategory
+    usecase "🌞❄️ Фильтрация по сезону" as FilterBySeason
+    usecase "🎨 Фильтрация по цвету" as FilterByColor
+    usecase "🔍 Поиск предмета" as SearchItem
+    usecase "↕️ Сортировка гардероба" as SortWardrobe
+    usecase "👕👖 Создание комплекта" as CreateOutfit
+    usecase "👗👔 Просмотр комплектов" as ViewOutfits
+    usecase "✅ Валидация данных" as ValidateData
+    usecase "📸 Загрузка фото" as UploadPhoto
+    usecase "💾 Автосохранение" as AutoSave
+    usecase "📊 Просмотр статистики" as ViewStats
+
+    ' Include relationships
+    AddItem -[hidden]down-> ValidateData
+    AddItem -[hidden]down-> UploadPhoto
+    EditItem -[hidden]down-> ValidateData
+    EditItem -[hidden]down-> AutoSave
+    
+    AddItem .> ValidateData : include
+    AddItem .> UploadPhoto : include
+    EditItem .> ValidateData : include
+    EditItem .> AutoSave : include
+    
+    ' Extend relationships
+    ViewWardrobe <.. FilterByCategory : extend
+    ViewWardrobe <.. FilterBySeason : extend
+    ViewWardrobe <.. FilterByColor : extend
+    ViewWardrobe <.. SearchItem : extend
+    ViewWardrobe <.. SortWardrobe : extend
+    
+    ViewOutfits <.. CreateOutfit : extend
+}
+
+' Actor associations
+User --> AddItem
+User --> EditItem
+User --> DeleteItem
+User --> ViewWardrobe
+User --> MarkWorn
+User --> AddToFavorites
+User --> ViewOutfits
+User --> ViewStats
+
+note right of AddItem
+  <b>Включает:</b>
+  - Валидацию данных
+  - Загрузку фото
+end note
+
+note right of EditItem
+  <b>Включает:</b>
+  - Валидацию данных
+  - Автосохранение
+end note
+
+note right of ViewWardrobe
+  <b>Может быть расширен:</b>
+  - Фильтрацией
+  - Поиском
+  - Сортировкой
+end note
+@enduml

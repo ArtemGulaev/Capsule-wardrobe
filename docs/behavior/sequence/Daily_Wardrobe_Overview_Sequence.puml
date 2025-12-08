@@ -1,0 +1,112 @@
+@startuml
+title Последовательность ежедневного обзора гардероба и аналитики
+
+actor "👤 Пользователь" as User
+participant "📱 Интерфейс" as UI
+participant "🎮 Контроллер" as Controller
+participant "🛠️ Сервис гардероба" as WardrobeService
+participant "📊 Сервис аналитики" as AnalyticsService
+participant "🌤️ Сервис погоды" as WeatherService
+participant "🗄️ База данных" as DB
+
+== Утренний обзор гардероба ==
+User -> UI: Открывает приложение утром
+activate User
+activate UI
+
+UI -> Controller: GET /api/wardrobe/daily-overview\n?user_id=123&date=2024-12-15
+activate Controller
+
+Controller -> WeatherService: getWeatherForecast(location, date)
+activate WeatherService
+WeatherService --> Controller: {temp: "+20°C", condition: "ясно", season: "лето"}
+deactivate WeatherService
+
+Controller -> WardrobeService: getDailyWardrobeSuggestions(user_id, weather)
+activate WardrobeService
+
+WardrobeService -> DB: SELECT * FROM ClothingItems\nWHERE user_id = ?\nAND season IN ('лето', 'всесезонное')\nAND last_worn < DATE('now', '-2 days')\nORDER BY wear_count ASC, is_favorite DESC\nLIMIT 5
+activate DB
+DB -> WardrobeService: suggested_items
+deactivate DB
+
+WardrobeService -> DB: SELECT * FROM Outfits\nWHERE user_id = ?\nAND occasion IN ('повседневное', 'работа')\nAND last_worn < DATE('now', '-7 days')\nORDER BY rating DESC\nLIMIT 3
+activate DB
+DB -> WardrobeService: suggested_outfits
+deactivate DB
+
+WardrobeService -> WardrobeService: prepareDailySuggestions(suggested_items, suggested_outfits, weather)
+activate WardrobeService
+WardrobeService -> Controller: DailyWardrobeResponse({\n  weather: weather_info,\n  suggestions: item_suggestions,\n  outfits: outfit_suggestions,\n  stats: daily_stats\n})
+deactivate WardrobeService
+
+Controller -> UI: 200 OK\n{\n  "weather": {\n    "temp": "+20°C",\n    "condition": "ясно",\n    "recommendation": "легкая одежда"\n  },\n  "suggestions": [...],\n  "outfits": [...],\n  "stats": {\n    "total_items": 42,\n    "unworn_30_days": 5,\n    "favorites_count": 12\n  }\n}
+deactivate Controller
+
+UI -> UI: Отобразить "Доброе утро! 🌞"
+UI -> UI: Показать погоду и рекомендации
+UI -> UI: Выделить "вещи для сегодня"
+UI -> User: Показать персонализированные\nпредложения по гардеробу
+
+== Использование гардероба в течение дня ==
+loop Для каждой надетой вещи
+User -> UI: Отмечает вещь как надетую
+UI -> Controller: PATCH /api/wardrobe/items/{id}/worn
+activate Controller
+Controller -> WardrobeService: markItemAsWorn(item_id, wear_data)
+activate WardrobeService
+WardrobeService -> DB: UPDATE ClothingItems\nSET wear_count = wear_count + 1,\nlast_worn = CURRENT_DATE\nWHERE item_id = ?
+activate DB
+DB -> WardrobeService: updated
+deactivate DB
+
+WardrobeService -> AnalyticsService: trackWearEvent(user_id, item_id, wear_data)
+activate AnalyticsService
+AnalyticsService -> DB: INSERT INTO WearAnalytics\n(user_id, item_id, date, occasion)\nVALUES (?, ?, ?, ?)
+activate DB
+DB -> AnalyticsService: tracked
+deactivate DB
+AnalyticsService --> WardrobeService: analytics_updated
+deactivate AnalyticsService
+
+WardrobeService --> Controller: SuccessResponse({\n  wear_count: new_count,\n  message: "Вещь отмечена"\n})
+deactivate WardrobeService
+Controller --> UI: 200 OK
+deactivate Controller
+
+UI -> UI: Обновить счетчик использований
+UI -> User: Показать подтверждение
+end
+
+== Вечерняя аналитика гардероба ==
+User -> UI: Запрашивает отчет за день
+UI -> Controller: GET /api/wardrobe/daily-report\n?user_id=123&date=2024-12-15
+activate Controller
+
+Controller -> AnalyticsService: getDailyWardrobeReport(user_id, date)
+activate AnalyticsService
+
+AnalyticsService -> DB: SELECT\n  COUNT(*) as items_worn,\n  GROUP_CONCAT(category) as categories_worn,\n  AVG(wear_count) as avg_wear_count\nFROM WearAnalytics\nWHERE user_id = ? AND date = ?
+activate DB
+DB --> AnalyticsService: wear_data
+deactivate DB
+
+AnalyticsService -> DB: SELECT\n  COUNT(*) as total_items,\n  SUM(CASE WHEN last_worn < DATE('now', '-30 days') THEN 1 ELSE 0 END) as unworn_30_days\nFROM ClothingItems\nWHERE user_id = ?
+activate DB
+DB --> AnalyticsService: wardrobe_stats
+deactivate DB
+
+AnalyticsService -> AnalyticsService: calculateWardrobeEfficiency(wear_data, wardrobe_stats)
+activate AnalyticsService
+AnalyticsService --> Controller: WardrobeReport({\n  daily_summary: summary,\n  efficiency_score: score,\n  recommendations: recs,\n  unworn_items: list\n})
+deactivate AnalyticsService
+
+Controller --> UI: 200 OK\n{\n  "daily_summary": {\n    "items_worn": 3,\n    "categories": ["верх", "низ", "обувь"],\n    "efficiency": "65%"\n  },\n  "recommendations": [\n    "5 вещей не носились >30 дней",\n    "Добавьте больше базовых цветов"\n  ],\n  "achievements": [\n    "Использовали 3 категории за день",\n    "Эффективность гардероба +5%"\n  ]\n}
+deactivate Controller
+
+UI -> UI: Сгенерировать визуальный отчет
+UI -> UI: Показать прогресс использования гардероба
+UI -> User: Показать достижения\nи рекомендации на завтра
+deactivate UI
+deactivate User
+@enduml
