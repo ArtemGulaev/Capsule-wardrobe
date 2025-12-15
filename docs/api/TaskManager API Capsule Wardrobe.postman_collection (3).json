@@ -1,0 +1,968 @@
+{
+	"info": {
+		"_postman_id": "fb94ee31-ed59-4442-9f71-fe25510999f8",
+		"name": "TaskManager API Capsule Wardrobe",
+		"description": "StartFragmentКоллекция для тестирования API Капсульного гардероба",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50662763",
+		"_collection_link": "https://artemgulaev-5350641.postman.co/workspace/Artem's-Workspace~32dfb8ab-cbcb-41ab-8612-a3624c83a651/collection/50662763-fb94ee31-ed59-4442-9f71-fe25510999f8?action=share&source=collection_link&creator=50662763"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Определяем, успешный ли ответ или ошибка\r",
+									"if (pm.response.code === 200) {\r",
+									"    // ТЕСТЫ ДЛЯ УСПЕШНОГО ЛОГИНА\r",
+									"    pm.test(\"✅ Status code is 200\", function () {\r",
+									"        pm.response.to.have.status(200);\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"✅ Response has auth token\", function () {\r",
+									"        var jsonData = pm.response.json();\r",
+									"        pm.expect(jsonData.token || jsonData.access_token).to.not.be.undefined;\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"✅ Save auth data\", function () {\r",
+									"        var jsonData = pm.response.json();\r",
+									"        var token = jsonData.token || jsonData.access_token;\r",
+									"        pm.environment.set(\"auth_token\", token);\r",
+									"        pm.environment.set(\"user_id\", jsonData.user_id);\r",
+									"        console.log(\"Token saved for user ID:\", jsonData.user_id);\r",
+									"    });\r",
+									"    \r",
+									"} else if (pm.response.code === 401) {\r",
+									"    // ТЕСТЫ ДЛЯ ОШИБКИ 401\r",
+									"    pm.test(\"❌ Status code is 401 Unauthorized\", function () {\r",
+									"        pm.response.to.have.status(401);\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"❌ Response has error details\", function () {\r",
+									"        var jsonData = pm.response.json();\r",
+									"        pm.expect(jsonData.error).to.not.be.undefined;\r",
+									"        console.log(\"Auth error:\", jsonData.error);\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"❌ Clear old auth data\", function () {\r",
+									"        pm.environment.unset(\"auth_token\");\r",
+									"        pm.environment.unset(\"user_id\");\r",
+									"    });\r",
+									"    \r",
+									"} else {\r",
+									"    // ТЕСТЫ ДЛЯ ДРУГИХ ОШИБОК\r",
+									"    pm.test(`Unexpected status: ${pm.response.code}`, function () {\r",
+									"        console.log(\"Unexpected response:\", pm.response.text());\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"user@example.com\",\r\n  \"password\": \"yourpassword123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Error - User Not Found",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"avemne\",\r\n    \"username\": \"password\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/login?username=23423&password=WrongPass",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": "23423"
+										},
+										{
+											"key": "password",
+											"value": "WrongPass"
+										}
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"domain": "",
+									"path": ""
+								}
+							],
+							"body": "{\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_token\",\n  \"error\": \"Invalid credentials\",\n  \"code\": \"AUTH_ERROR\",\n  \"message\": \"Неверное имя пользователя или пароль\"\n}"
+						},
+						{
+							"name": "Success Login",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"email\": \"user@example.com\",\r\n  \"password\": \"yourpassword123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/auth/login?username=artem&password=Password123",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"login"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": "artem"
+										},
+										{
+											"key": "password",
+											"value": "Password123"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_token\",\n    \"user_id\": 1,\n    \"username\": \"artem\",\n    \"message\": \"Login successful\"\n}"
+						}
+					]
+				}
+			],
+			"description": "StartFragment для запросов авторизации Капсульного гардероба"
+		},
+		{
+			"name": "Tasks Management",
+			"item": [
+				{
+					"name": "Get All Clothing Items",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var status = pm.response.code;\r",
+									"\r",
+									"if (status === 200) {\r",
+									"    // УСПЕШНЫЙ ОТВЕТ\r",
+									"    pm.test(\"✅ Статус 200\", function () {\r",
+									"        pm.response.to.have.status(200);\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"✅ Есть данные предмета\", function () {\r",
+									"        var data = pm.response.json();\r",
+									"        pm.expect(data.item).to.be.an('object');\r",
+									"        pm.expect(data.item.id).to.be.a('number');\r",
+									"    });\r",
+									"    \r",
+									"} else if (status === 404) {\r",
+									"    // ОШИБКА 404\r",
+									"    pm.test(\"❌ Статус 404\", function () {\r",
+									"        pm.response.to.have.status(404);\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"❌ Есть сообщение об ошибке\", function () {\r",
+									"        var data = pm.response.json();\r",
+									"        pm.expect(data.error).to.include(\"не найден\");\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Белая классическая рубашка\",\r\n  \"category_id\": 2,\r\n  \"color\": \"белый\",\r\n  \"season\": [\"весна\", \"осень\"],\r\n  \"image_url\": \"/uploads/shirt.jpg\",\r\n  \"description\": \"Универсальная хлопковая рубашка\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"items"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - With items",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/items/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"item\": {\n    \"id\": 1,\n    \"name\": \"Футболка\",\n    \"type\": \"верх\"\n  }\n}"
+						},
+						{
+							"name": "Error - Unauthorized",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/items/999",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items",
+										"999"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": \"Предмет не найден\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Create Clothing Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var status = pm.response.code;\r",
+									"\r",
+									"if (status === 201) {\r",
+									"    // УСПЕШНОЕ СОЗДАНИЕ\r",
+									"    pm.test(\"✅ Статус 201\", function() {\r",
+									"        pm.response.to.have.status(201);\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"✅ Есть ID созданного предмета\", function() {\r",
+									"        var data = pm.response.json();\r",
+									"        pm.expect(data.id).to.be.a('number');\r",
+									"        pm.expect(data.message).to.include(\"создан\");\r",
+									"        \r",
+									"        // Сохраняем ID для последующих тестов\r",
+									"        pm.environment.set(\"created_item_id\", data.id);\r",
+									"        console.log(\"Создан предмет с ID:\", data.id);\r",
+									"    });\r",
+									"    \r",
+									"} else if (status === 400) {\r",
+									"    // ОШИБКА\r",
+									"    pm.test(\"❌ Статус 400\", function() {\r",
+									"        pm.response.to.have.status(400);\r",
+									"    });\r",
+									"    \r",
+									"    pm.test(\"❌ Есть сообщение об ошибке\", function() {\r",
+									"        var data = pm.response.json();\r",
+									"        pm.expect(data.error).to.be.a('string');\r",
+									"        console.log(\"Ошибка создания:\", data.error);\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Белая классическая рубашка\",\r\n  \"category_id\": 2, \r\n  \"color\": \"белый\",\r\n  \"season\": [\"весна\", \"осень\"],\r\n  \"image_url\": \"/uploads/shirt.jpg\", \r\n  \"description\": \"Универсальная хлопковая рубашка\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"items"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Item created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Черные джинсы\",\r\n    \"description\": \"Прямые черные джинсы\",\r\n    \"category_id\": 2,\r\n    \"color\": \"черный\",\r\n    \"season\": \"всесезонное\",\r\n    \"is_favorite\": false,\r\n    \"image_data\": \"base64_encoded_image_here\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/items?name=Футболка&type=верх&color=белый",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "Футболка"
+										},
+										{
+											"key": "type",
+											"value": "верх"
+										},
+										{
+											"key": "color",
+											"value": "белый"
+										}
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 3,\n  \"name\": \"Футболка\",\n  \"type\": \"верх\",\n  \"color\": \"белый\",\n  \"message\": \"Предмет создан\"\n}"
+						},
+						{
+							"name": "Error - Missing required field",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Черные джинсы\",\r\n    \"description\": \"Прямые черные джинсы\",\r\n    \"category_id\": 2,\r\n    \"color\": \"черный\",\r\n    \"season\": \"всесезонное\",\r\n    \"is_favorite\": false,\r\n    \"image_data\": \"base64_encoded_image_here\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/items?type=низ",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "низ"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": \"Не указано название\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Clothing Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var status = pm.response.code;\r",
+									"\r",
+									"// 1. Всегда проверяем статус\r",
+									"pm.test(`Status is ${status}`, function() {\r",
+									"    pm.expect([200, 400, 404]).to.include(status);\r",
+									"});\r",
+									"\r",
+									"// 2. Проверяем, что ответ - JSON\r",
+									"pm.test(\"Response is JSON\", function() {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"var data = pm.response.json();\r",
+									"console.log(\"Response data:\", JSON.stringify(data));\r",
+									"\r",
+									"// 3. Разные проверки в зависимости от статуса\r",
+									"if (status === 200) {\r",
+									"    // УСПЕШНЫЙ ОТВЕТ\r",
+									"    \r",
+									"    // Проверяем только то, что точно есть\r",
+									"    if (data.id !== undefined) {\r",
+									"        pm.test(\"Has item ID\", function() {\r",
+									"            pm.expect(data.id).to.be.a('number');\r",
+									"        });\r",
+									"    }\r",
+									"    \r",
+									"    if (data.message !== undefined) {\r",
+									"        pm.test(\"Has success message\", function() {\r",
+									"            pm.expect(data.message).to.be.a('string');\r",
+									"        });\r",
+									"    }\r",
+									"    \r",
+									"    // Общая проверка структуры\r",
+									"    pm.test(\"Response has data\", function() {\r",
+									"        pm.expect(Object.keys(data).length).to.be.greaterThan(0);\r",
+									"    });\r",
+									"    \r",
+									"} else if (status === 404) {\r",
+									"    // ОШИБКА 404\r",
+									"    pm.test(\"Has error message\", function() {\r",
+									"        pm.expect(data.error).to.be.a('string');\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Белая классическая рубашка (обновленное название)\",\r\n  \"season\": [\"весна\", \"лето\", \"осень\"], \r\n  \"description\": \"Идеальна для офиса и встреч.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/items/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"4"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Item Updated",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Белая футболка (обновлено)\",\r\n    \"is_favorite\": true,\r\n    \"color\": \"белый\",\r\n    \"notes\": \"Любимая футболка для лета\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/items/1?name=Футболка+новая",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items",
+										"1"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "Футболка+новая"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": 1,\n  \"name\": \"Футболка новая\",\n  \"type\": \"верх\",\n  \"color\": \"белый\",\n  \"message\": \"Предмет обновлен\"\n}"
+						},
+						{
+							"name": "Error - Item Not Found",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Белая футболка (обновлено)\",\r\n    \"is_favorite\": true,\r\n    \"color\": \"белый\",\r\n    \"notes\": \"Любимая футболка для лета\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/items/999?color=красный",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items",
+										"999"
+									],
+									"query": [
+										{
+											"key": "color",
+											"value": "красный"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": \"Предмет не найден\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Clothing Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var status = pm.response.code;\r",
+									"\r",
+									"if (status === 200) {\r",
+									"    pm.test(\"✅ Статус 200 - Удалено\", function() {\r",
+									"        pm.response.to.have.status(200);\r",
+									"    });\r",
+									"} else if (status === 404) {\r",
+									"    pm.test(\"❌ Статус 404 - Не найден\", function() {\r",
+									"        pm.response.to.have.status(404);\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/items/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"4"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Item deleted",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/items/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Предмет удален\"\n}"
+						},
+						{
+							"name": "Error - Item Not Found",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/items/999",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"items",
+										"999"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"error\": \"Предмет не найден\"\n}"
+						}
+					]
+				}
+			],
+			"description": "StartFragmentдля работы с задачами Капсульного гардероба"
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var status = pm.response.code;\r",
+									"\r",
+									"pm.test(`Статус ответа: ${status}`, function() {\r",
+									"    pm.response.to.have.status(status);\r",
+									"});\r",
+									"\r",
+									"if (status === 200) {\r",
+									"    var data = pm.response.json();\r",
+									"    \r",
+									"    pm.test(\"✅ Есть массив categories\", function() {\r",
+									"        pm.expect(data.categories).to.be.an('array');\r",
+									"    });\r",
+									"    \r",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/wardrobe/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"wardrobe",
+								"categories"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - All categories",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/categories",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"categories"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"categories\": [\n    {\n      \"id\": 1,\n      \"name\": \"Верх\"\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Низ\"\n    },\n    {\n      \"id\": 3,\n      \"name\": \"Платья\"\n    }\n  ]\n}"
+						},
+						{
+							"name": "Success - With items count",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/categories?with_count=true",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"categories"
+									],
+									"query": [
+										{
+											"key": "with_count",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"categories\": [\n    {\n      \"id\": 1,\n      \"name\": \"Верх\",\n      \"item_count\": 5\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Низ\",\n      \"item_count\": 3\n    }\n  ]\n}"
+						}
+					]
+				}
+			],
+			"description": "StartFragmentдля работы с категориями Капсульного гардероба"
+		}
+	]
+}
