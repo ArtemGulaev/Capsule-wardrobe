@@ -20,66 +20,55 @@ Login
 
 Name: Error - User not found
 Method: POST
-URL: {{base_url}}/auth/login?username=avemne
+{{base_url}}/api/auth/login?username=23423&password=WrongPass
+
+Name: Success Login
+Method: POST
+{{base_url}}/api/auth/login?username=artem&password=Password123
 
 ##  Wardrobe Management
-Login Capsule Wardrobe
-Name: Success - Valid Credentials
-Method: POST
-URL:  {{base_url}}/auth/login?username=avemne
-
-Name: Error - Invalid Credentials
-Method: POST
-URL: {{base_url}}/auth/login?username=avemne
-
 ## Get All Clothing Items
-Name: Success - With Items (Default Pagination)
+Name: Success - With Items
 Method: GET
-URL:  {{base_url}}/tasks?status=deactive
+URL:  {{base_url}}/api/items/1
 
 Name: Error - Unauthorized
 Method: GET
-URL:  {{base_url}}/tasks?status=deactive
+URL:  {{base_url}}/api/items/999
 
 ## Create Clothing Item
-Name: Success - Item Created (Basic Fields)
+Name: Success - Item Created
 Method: POST
-URL: {{base_url}}/wardrobe/items
+URL: {{base_url}}/api/items?name=Футболка&type=верх&color=белый
 
 Name: Error - Category Not Found
 Method: POST
-URL: {{base_url}}/wardrobe/items
+URL: {{base_url}}/api/items?type=низ
 
 ## Update Clothing Item
 Name: Success - Item Updated
 Method: PATCH
-URL: {{base_url}}/wardrobe/items/1
+URL: {{base_url}}/api/items/1?name=Футболка+новая
 
 Name: Error - Item Not Found
 Method: PATCH
-URL: {{base_url}}/wardrobe/items/9
+URL: {{base_url}}/api/items/999?color=красный
 
 ## Delete Clothing Item
 Name: Success - Item Deleted
 Method: DELETE
-URL: {{base_url}}/wardrobe/items/1
+URL: {{base_url}}/api/items/1
 
 Name: Error - Item Not Found
 Method: DELETE
-URL: {{base_url}}/wardrobe/items/999
+URL: {{base_url}}/api/items/999
 
 📂 Categories Management
 ## Get All Categories
-Name: Success - With Items (Default Pagination)
+Name: Success - With Items
 Method: GET
-URL: {{base_url}}/wardrobe/categories
+URL: {{base_url}}/categories
 
 Name: Success - Empty Wardrobe
 Method: GET
-URL: {{base_url}}/wardrobe/categories
-
-Name: Error - Unauthorized
-Method: GET
-URL: {{base_url}}/wardrobe/categories
-
-
+URL: {{base_url}}/categories?with_count=true
